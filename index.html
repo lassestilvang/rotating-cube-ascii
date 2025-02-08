@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ASCII Rotating Cube</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        background: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        font-family: monospace;
+        color: #33ff33;
+      }
+      #ascii-output {
+        white-space: pre;
+        font-size: 8px;
+        line-height: 8px;
+        letter-spacing: 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ascii-output"></div>
+    <script>
+      const width = 160;
+      const height = 80;
+      const asciiChars = " .:-=+*#%@";
+
+      // Setup Three.js scene
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(width, height);
+
+      // Create cube
+      const geometry = new THREE.BoxGeometry();
+      const material = new THREE.MeshNormalMaterial();
+      const cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+
+      camera.position.z = 2;
+
+      // Create hidden canvas for reading pixels
+      const hiddenCanvas = document.createElement("canvas");
+      hiddenCanvas.width = width;
+      hiddenCanvas.height = height;
+      const ctx = hiddenCanvas.getContext("2d");
+
+      // ASCII output element
+      const asciiOutput = document.getElementById("ascii-output");
+
+      function getAsciiChar(brightness) {
+        return asciiChars[Math.floor(brightness * (asciiChars.length - 1))];
+      }
+
+      function render() {
+        requestAnimationFrame(render);
+
+        // Rotate cube
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.01;
+
+        // Render scene
+        renderer.render(scene, camera);
+
+        // Get pixel data
+        ctx.drawImage(renderer.domElement, 0, 0);
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const pixels = imageData.data;
+
+        // Convert to ASCII
+        let ascii = "";
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4;
+            const brightness =
+              (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 765; // 765 = 255 * 3
+            ascii += getAsciiChar(brightness);
+          }
+          ascii += "\n";
+        }
+
+        asciiOutput.textContent = ascii;
+      }
+
+      render();
+    </script>
+  </body>
+</html>
