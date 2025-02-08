@@ -35,9 +35,33 @@
       const renderer = new THREE.WebGLRenderer();
       renderer.setSize(width, height);
 
+      // Create checker texture
+      const textureSize = 512;
+      const textureCanvas = document.createElement("canvas");
+      textureCanvas.width = textureSize;
+      textureCanvas.height = textureSize;
+      const textureCtx = textureCanvas.getContext("2d");
+
+      // Draw checker pattern
+      const tileSize = 64;
+      textureCtx.fillStyle = "white";
+      textureCtx.fillRect(0, 0, textureSize, textureSize);
+      textureCtx.fillStyle = "black";
+      for (let y = 0; y < textureSize; y += tileSize) {
+        for (let x = 0; x < textureSize; x += tileSize) {
+          if (((x + y) / tileSize) % 2 === 0) {
+            textureCtx.fillRect(x, y, tileSize, tileSize);
+          }
+        }
+      }
+
+      // Create texture
+      const texture = new THREE.CanvasTexture(textureCanvas);
+      texture.needsUpdate = true;
+
       // Create cube
       const geometry = new THREE.BoxGeometry();
-      const material = new THREE.MeshNormalMaterial();
+      const material = new THREE.MeshBasicMaterial({ map: texture });
       const cube = new THREE.Mesh(geometry, material);
       scene.add(cube);
 
